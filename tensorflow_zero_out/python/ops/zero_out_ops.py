@@ -23,4 +23,4 @@ from tensorflow.python.platform import resource_loader
 
 zero_out_ops = load_library.load_op_library(
     resource_loader.get_path_to_datafile('_zero_out_ops.so'))
-zero_out = zero_out_ops.zero_out
+custom_conv = zero_out_ops.custom_conv2d

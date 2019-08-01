@@ -5,8 +5,8 @@ package(default_visibility = ["//visibility:public"])
 cc_binary(
     name = 'python/ops/_zero_out_ops.so',
     srcs = [
-        "cc/kernels/zero_out_kernels.cc",
-        "cc/ops/zero_out_ops.cc",
+        "cc/kernels/custom_conv2d.cc",
+        "cc/ops/CustomConv2d.cc",
     ],
     linkshared = 1,
     deps = [
