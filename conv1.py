@@ -53,7 +53,7 @@ def train_network(training_data, labels, output, keep_prob=tf.placeholder(tf.flo
 
     # Evaluate on the test set
     test_accuracy = accuracy.eval(feed_dict={training_data: mnist.test.images, labels: mnist.test.labels, keep_prob: 1.0})
-    print("Test accuracy: %g %%"%(test_accuracy*100))
+    print("Test accuracy after training: %g %%"%(test_accuracy*100))
     return sess
     
 
@@ -68,7 +68,7 @@ def test_network(sess, training_data, labels, output, keep_prob=tf.placeholder(t
 
     # Evaluate on the test set
     test_accuracy = accuracy.eval(feed_dict={training_data: mnist.test.images, labels: mnist.test.labels, keep_prob: 1.0})
-    print("Test accuracy: %g %%"%(test_accuracy*100))
+    print("Test accuracy with conv2d: %g %%"%(test_accuracy*100))
 
 
 # In[6]:
@@ -163,24 +163,7 @@ weights.append(sess.run(tf.trainable_variables('W_conv1')))
 weights.append(sess.run(tf.trainable_variables('W_conv2')))
 weights.append(sess.run(tf.trainable_variables('W_h')))
 weights.append(sess.run(tf.trainable_variables('W:0')))
-print("shape = " , weights[0][0].shape)
 
-print("shape1 = " , mnist.test.images[0].shape)
-
-# %%
-def print_filter(filter, index):
-    for i in filter:
-        for j in i:
-            print(j[0][index]), 
-        print("\n")
-
-def print_image(image, index):
-    h = int(index / 28)
-    w = index % 28
-    for i in range(5):
-        for j in range(5):
-            print(image[(h+i)*28 + w+j]),
-        print("\n")
 # In[245]:
 def build_test_network(training_images, weights, b_conv1, b_conv2, b_h, b, labels):
     image_size = 28
@@ -191,35 +174,11 @@ def build_test_network(training_images, weights, b_conv1, b_conv2, b_h, b, label
     hidden_size = 1024
     W_conv1 = weights[0][0]
 
-    # print_filter(W_conv1, 15)
-    # print_image(mnist.test.images[3], 63)
-    
-    # conv1 = tf.nn.relu(tf.nn.conv2d(training_images, W_conv1, strides=[1, 1, 1, 1], padding='SAME')+b_conv1)
     conv3 = tf.nn.relu(z.custom_conv(input=training_images, filter= W_conv1, strides=[1, 1, 1, 1], padding='SAME')+b_conv1)
 
-    # a = conv1.eval(feed_dict={training_data: mnist.test.images, labels: mnist.test.labels})
-    # b = conv3.eval(feed_dict={training_data: mnist.test.images, labels: mnist.test.labels})
-    # # print(W_conv1.reshape(32, 1, 5, 5)[0])
-    # # print(mnist.test.images[0])
-
-    # # print("conv1 = " , conv1.eval(feed_dict={training_data: mnist.test.images, labels: mnist.test.labels, keep_prob: 1.0}))
-    # # print("conv3 = " , conv3.eval(feed_dict={training_data: mnist.test.images, labels: mnist.test.labels, keep_prob: 1.0}))
-    # c = a[0] == b[0]
-
-    # print(mnist.test.images[3])
-    # print(a[3][2][15], b[3][2][15])
-    # # k = 0
-    # for i in range(len(c)):
-    #     for j in range(len(c[i])):
-    #         if False in c[i][j]:
-    #             print(a[0][i][j], b[0][i][j])
-    #             print(i , j)
-    #             break
-    # print("eq = " , k)
     pool1 = tf.nn.max_pool(conv3, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding='SAME')
     
     W_conv2 = weights[1][0]
-    # conv2 = tf.nn.relu(tf.nn.conv2d(pool1, W_conv2, strides=[1, 1, 1, 1], padding='SAME') + b_conv2)
     conv4 = tf.nn.relu(tf.nn.conv2d(input=pool1, filter=W_conv2, strides=[1, 1, 1, 1], padding='SAME') + b_conv2)
     pool2 = tf.nn.max_pool(conv4, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding='SAME')
 
@@ -240,7 +199,7 @@ def build_test_network(training_images, weights, b_conv1, b_conv2, b_h, b, label
     # Evaluate on the test set
     test_accuracy = accuracy.eval(feed_dict={training_data: mnist.test.images, labels: mnist.test.labels, keep_prob: 1.0})
 
-    print("Test accuracy: %g %%"%(test_accuracy*100))
+    print("Test accuracy with custom_conv: %g %%"%(test_accuracy*100))
 
 
 # In[246]:
