@@ -1,9 +1,10 @@
-# TensorFlow Custom Op
-This is a guide for users who want to write custom c++ op for TensorFlow and distribute the op as a pip package. This repository serves as both a working example of the op building and packaging process, as well as a template/starting point for writing your own ops. The way this repository is set up allow you to build your custom ops from TensorFlow's pip package instead of building TensorFlow from scratch. This guarantee that the shared library you build will work with TensorFlow's pip packages.
+# TensorFlow Custom Convolution Op
+This is a custom c++ convolution op that can be used instead of conv2d function of tensorflow. This function introduces some
+flexibilities to add extra options to conv2d.
 
 This guide including example for cpu and gpu ops. 
 
-## Build Example zero_out Op (CPU only)
+## Build Example custom_conv Op (CPU only)
 If you want to try out the process of building a pip package for custom op, you can use the source code from this repository following the instructions below.
 
 ### Setup Docker Container
@@ -42,13 +43,12 @@ pip install artifacts/*.whl
 ```
 Then test out the pip package
 ```bash
-cd ..
-python -c "import tensorflow as tf;import tensorflow_zero_out as zero_out_module;print(zero_out_module.zero_out([[1,2], [3,4]]).eval(session=tf.Session()))"
+python conv1.py
 ```
-And you should see the op zeroed out all input elements except the first one:
+And you can see the result of both conv2d and custom_conv at the end:
 ```bash
-[[1 0]
- [0 0]]
+Test accuracy with conv2d: 88.63
+Test accuracy with custom_conv: 88.63
 ```
 
 ## Create and Distribute Custom Ops
@@ -68,8 +68,10 @@ First let's go through a quick overview of the folder structure of this template
 │   ├── cc
 │   │   ├── kernels  # op kernel implementation
 │   │   │   └── zero_out_kernels.cc
+|   |   |   └── custom_conv2d.cc
 │   │   └── ops  # op interface definition
 │   │       └── zero_out_ops.cc
+|   |       └── CustomConv2d.cc
 │   ├── python
 │   │   ├── ops
 │   │   │   ├── __init__.py
