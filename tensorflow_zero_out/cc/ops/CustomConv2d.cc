@@ -8,11 +8,13 @@
 using namespace tensorflow;
 
 REGISTER_OP("CustomConv2d")
+	.Attr("bit_width: int=32")
     .Input("input: float32")
     .Input("filter: float32")
     .Input("strides: int32")
     .Input("padding: string")
     .Output("conved: float32")
+	.Output("new_weight: float32")
     .SetShapeFn([](::tensorflow::shape_inference::InferenceContext* c) {
     	::tensorflow::shape_inference::ShapeHandle input_shape;
 		TF_RETURN_IF_ERROR(c->WithRank(c->input(0), 4, &input_shape));
@@ -29,6 +31,8 @@ REGISTER_OP("CustomConv2d")
       	output_shape = c->MakeShape({batch_size_dim, in_rows_dim,
                                  in_cols_dim, output_depth_dim});
 		c->set_output(0, output_shape);
+		c->set_output(1, c->input(1));
+
 		return Status::OK();
     });
    

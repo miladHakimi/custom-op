@@ -15,7 +15,7 @@ mnist = input_data.read_data_sets("MNIST_data/", one_hot=True)
 # In[18]:
 
 
-def train_network(training_data, labels, output, keep_prob=tf.placeholder(tf.float32)):
+def train_network(training_data, labels, output, keep_prob=tf.placeholder(tf.float32), init_sess=None):
     learning_rate = 1e-4
     steps_number = 100
     batch_size = 100
@@ -34,8 +34,13 @@ def train_network(training_data, labels, output, keep_prob=tf.placeholder(tf.flo
     accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
 
     # Run the training
-    sess = tf.InteractiveSession()
-    sess.run(tf.global_variables_initializer())
+    sess = None
+
+    if not init_sess:
+        sess = tf.InteractiveSession()
+        sess.run(tf.global_variables_initializer())
+    else:
+        sess = init_sess
 
     for i in range(steps_number):
         # Get the next batch
@@ -174,7 +179,9 @@ def build_test_network(training_images, weights, b_conv1, b_conv2, b_h, b, label
     hidden_size = 1024
     W_conv1 = weights[0][0]
 
-    conv3 = tf.nn.relu(z.custom_conv(input=training_images, filter= W_conv1, strides=[1, 1, 1, 1], padding='SAME')+b_conv1)
+    # conv3 = tf.nn.relu(z.custom_conv(input=training_images, filter= W_conv1, strides=[1, 1, 1, 1], padding='SAME')[0]+b_conv1)
+    print(W_conv1[0][0][0])
+    conv3, aa = z.custom_conv(input=training_images, filter= W_conv1, strides=[1, 1, 1, 1], padding='SAME')
 
     pool1 = tf.nn.max_pool(conv3, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding='SAME')
     
@@ -201,8 +208,13 @@ def build_test_network(training_images, weights, b_conv1, b_conv2, b_h, b, label
 
     print("Test accuracy with custom_conv: %g %%"%(test_accuracy*100))
 
-
 # In[246]:
 
 build_test_network(training_images, weights, b_conv1, b_conv2, b_h, b, labels)
+sess = train_network(training_data, labels, output, keep_prob, sess)
 
+# weights = []
+# weights.append(sess.run(tf.trainable_variables('W_conv2')))
+# weights.append(sess.run(tf.trainable_variables('W_h')))
+# weights.append(sess.run(tf.trainable_variables('W:0')))
+# build_test_network(training_images, weights, b_conv1, b_conv2, b_h, b, labels)

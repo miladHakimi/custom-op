@@ -2,18 +2,18 @@
 #include <string.h>
 #include <cmath>
 
-using namespace tensorflow;
 
+using namespace tensorflow;
 class CustomConv2dOp : public OpKernel {
     public:
     explicit CustomConv2dOp(OpKernelConstruction* context) : OpKernel(context) {}
     void Compute(OpKernelContext* context) override {
-
+        
         const Tensor& input_tensor1 = context->input(0);
         const Tensor& input_tensor2 = context->input(1);
         const Tensor& input_tensor3 = context->input(2);
         const Tensor& input_tensor4 = context->input(3);
-        
+
         auto padding = input_tensor4.flat<string>();
         auto strides = input_tensor3.flat<int>();
         
@@ -57,10 +57,15 @@ class CustomConv2dOp : public OpKernel {
         Tensor* output_tensor = NULL;
         OP_REQUIRES_OK(context, context->allocate_output(0, ts,&output_tensor));
         auto output_flat = output_tensor->flat<float>();
+
+        Tensor* output_tensor2 = NULL;
+        OP_REQUIRES_OK(context, context->allocate_output(1, input_tensor2.shape(), &output_tensor2));
+        auto output_flat2 = output_tensor2->flat<float>();
+        for (int i=0; i< FIL_H * FIL_W * depth; i++)
+            output_flat2(i) = ((int)(filter(i)*pow(2, shift_amount)+0.5))/(pow(2, shift_amount)*1.0);
         // convolution body
         int comp_img_height = 0;
         int comp_img_width = 0;
-        filter_op = (int)(filter(500)* pow(2, shift_amount));
         for (int m = 0; m < count; m++){
             for (int n = 0; n < depth; n++){
                 for (int i = 0; i < height; i+=1){
@@ -75,7 +80,6 @@ class CustomConv2dOp : public OpKernel {
                                     filter_op = (int)(filter((k * FIL_W + l) * depth + n)* pow(2, shift_amount) + 0.5);
                                     img_op =  (int)(img( m * (IMG_H*IMG_W) + comp_img_height * IMG_W + comp_img_width)* pow(2, shift_amount) + 0.5);
                                     if(comp_img_width >= 0 && comp_img_width < IMG_W + pad_right)
-                                        // partial_conv +=  filter_op * img_op;
                                         p_conv += (filter_op * img_op)>>shift_amount;
                                     else
                                         break;       
