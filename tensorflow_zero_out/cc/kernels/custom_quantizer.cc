@@ -18,7 +18,6 @@ class CustomQuantizerOp : public OpKernel {
         int FIL_W =input_tensor1.shape().dim_size(1);
         int count = input_tensor1.shape().dim_size(2);
         int depth = input_tensor1.shape().dim_size(3);
-        printf("H = %d , W = %d , c = %d, D = %d\n\n\n\n\n", FIL_H, FIL_W, count, depth);
 
         auto filter = input_tensor1.flat<float>();
         
@@ -28,8 +27,6 @@ class CustomQuantizerOp : public OpKernel {
 
         for (int i = 0; i < count*FIL_H*FIL_W*depth; i++){
             output_flat(i) = ((int)(filter(i) * pow(2, bit_width-1) + 0.5))/(pow(2, bit_width-1)*1.0);
-            // output_flat(i) = 1;
-
         }
     }
 };

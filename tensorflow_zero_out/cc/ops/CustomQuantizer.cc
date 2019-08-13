@@ -8,10 +8,8 @@
 using namespace tensorflow;
 
 REGISTER_OP("CustomQuantizer")
-	// .Attr("T: list({int32}) = [8]")
 	.Attr("bit_width: int = 8")
     .Input("filter: float32")
-    // .Input("bit_width: T")
     .Output("conved: float32")
     .SetShapeFn([](::tensorflow::shape_inference::InferenceContext* c) {
 		c->set_output(0, c->input(0));
