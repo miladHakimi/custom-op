@@ -7,6 +7,8 @@ cc_binary(
     srcs = [
         "cc/kernels/custom_conv2d.cc",
         "cc/ops/CustomConv2d.cc",
+	"cc/kernels/custom_quantizer.cc",
+	"cc/ops/CustomQuantizer.cc",
     ],
     linkshared = 1,
     deps = [

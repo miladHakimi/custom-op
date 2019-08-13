@@ -15,7 +15,7 @@ mnist = input_data.read_data_sets("MNIST_data/", one_hot=True)
 # In[18]:
 
 
-def train_network(training_data, labels, output, keep_prob=tf.placeholder(tf.float32), init_sess=None):
+def train_network(training_data, labels, output, keep_prob=tf.placeholder(tf.float32), init_sess=None, ts=None):
     learning_rate = 1e-4
     steps_number = 100
     batch_size = 100
@@ -27,7 +27,11 @@ def train_network(training_data, labels, output, keep_prob=tf.placeholder(tf.flo
     loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=labels, logits=output))
 
     # Training step
-    train_step = tf.train.AdamOptimizer(learning_rate).minimize(loss)
+    train_step = None
+    if ts is None:
+        train_step = tf.train.AdamOptimizer(learning_rate).minimize(loss)
+    else:
+        train_step = ts
 
     # Accuracy calculation
     correct_prediction = tf.equal(tf.argmax(output, 1), tf.argmax(labels, 1))
@@ -41,6 +45,8 @@ def train_network(training_data, labels, output, keep_prob=tf.placeholder(tf.flo
         sess.run(tf.global_variables_initializer())
     else:
         sess = init_sess
+        a = sess.run(tf.trainable_variables('W_conv1'))
+        print("A = " , a[0][0][0])
 
     for i in range(steps_number):
         # Get the next batch
@@ -59,7 +65,7 @@ def train_network(training_data, labels, output, keep_prob=tf.placeholder(tf.flo
     # Evaluate on the test set
     test_accuracy = accuracy.eval(feed_dict={training_data: mnist.test.images, labels: mnist.test.labels, keep_prob: 1.0})
     print("Test accuracy after training: %g %%"%(test_accuracy*100))
-    return sess
+    return sess, train_step
     
 
 
@@ -155,7 +161,9 @@ output = tf.matmul(hidden_drop, W) + b
 # In[102]:
 
 # Train & test the network
-sess = train_network(training_data, labels, output, keep_prob)
+sess, ts = train_network(training_data, labels, output, keep_prob)
+# sess, ts = train_network(training_data, labels, output, keep_prob, sess, ts)
+
 
 # In[247]:
 
@@ -180,9 +188,7 @@ def build_test_network(training_images, weights, b_conv1, b_conv2, b_h, b, label
     W_conv1 = weights[0][0]
 
     # conv3 = tf.nn.relu(z.custom_conv(input=training_images, filter= W_conv1, strides=[1, 1, 1, 1], padding='SAME')[0]+b_conv1)
-    print(W_conv1[0][0][0])
     conv3, aa = z.custom_conv(input=training_images, filter= W_conv1, strides=[1, 1, 1, 1], padding='SAME')
-
     pool1 = tf.nn.max_pool(conv3, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding='SAME')
     
     W_conv2 = weights[1][0]
@@ -207,11 +213,25 @@ def build_test_network(training_images, weights, b_conv1, b_conv2, b_h, b, label
     test_accuracy = accuracy.eval(feed_dict={training_data: mnist.test.images, labels: mnist.test.labels, keep_prob: 1.0})
 
     print("Test accuracy with custom_conv: %g %%"%(test_accuracy*100))
+    return aa
 
 # In[246]:
+while 10:
+    w = build_test_network(training_images, weights, b_conv1, b_conv2, b_h, b, labels)
+    w = w.eval(feed_dict={training_data: mnist.test.images, labels: mnist.test.labels, keep_prob: 1.0})
+    print(w[0][0])
+    v1 = sess.graph.get_tensor_by_name('W_conv1:0')
+    sess.run(v1)
+    print("shape1 = ", w.shape)
+    print("shape2 = ", W_conv1.shape)
 
-build_test_network(training_images, weights, b_conv1, b_conv2, b_h, b, labels)
-sess = train_network(training_data, labels, output, keep_prob, sess)
+    # tf.assign(v1, W_conv10)
+    # print(sess.run(v1))   # 2.0
+
+    sess.run(tf.assign(v1, w))
+    # print(sess.run(v1))   # 1.0
+    # W_conv1 = 0
+    sess, ts = train_network(training_data, labels, output, keep_prob, sess, ts)
 
 # weights = []
 # weights.append(sess.run(tf.trainable_variables('W_conv2')))
