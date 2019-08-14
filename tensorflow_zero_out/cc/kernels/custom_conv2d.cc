@@ -1,7 +1,7 @@
 #include "tensorflow/core/framework/op_kernel.h"
 #include <string.h>
 #include <cmath>
-
+#include <omp.h>
 
 using namespace tensorflow;
 class CustomConv2dOp : public OpKernel {
@@ -61,31 +61,32 @@ class CustomConv2dOp : public OpKernel {
         // convolution body
         int comp_img_height = 0;
         int comp_img_width = 0;
-        for (int m = 0; m < count; m++){
-            for (int n = 0; n < depth; n++){
-                for (int i = 0; i < height; i+=1){
-                    for (int j = 0; j < width; j+=1){
+        int m, n, i, j, k, l;
+        for (m = 0; m < count; m++){
+            for (n = 0; n < depth; n++){
+                for (i = 0; i < height; i+=1){
+                    for (j = 0; j < width; j+=1){
                         p_conv = 0;
-                        for (int k = 0; k < FIL_H; k+=1){
+                        for (k = 0; k < FIL_H; k+=1){
                             comp_img_height = i * strides(0) + k - pad_top;
                             if(comp_img_height >= 0 && comp_img_height < IMG_H + pad_bottom)
-                                for (int l = 0; l < FIL_W; l+=1){
+                                for (l = 0; l < FIL_W; l+=1){
                                     comp_img_width = j * strides(0) + l - pad_left;
                                     filter_op = (int)(filter((k * FIL_W + l) * depth + n)* pow(2, bit_width-1) + 0.5);
                                     img_op =  (int)(img( m * (IMG_H*IMG_W) + comp_img_height * IMG_W + comp_img_width)* pow(2, bit_width-1) + 0.5);
                                     if(comp_img_width >= 0 && comp_img_width < IMG_W + pad_right)
                                         p_conv += ((int)(filter_op * img_op))>>(bit_width-1);
-                                    else
-                                        break;       
+                                    // else
+                                    //     break;       
                                 }    
-                            else
-                                break;  
+                            // else
+                            //     break;  
                         }
                         output_flat(m*height*width*depth+(i*width+j)*depth+n) = p_conv/((pow(2, bit_width-1))*1.0);
                     }
                 }
             }
-        }
+        }  
     }
 };
 
